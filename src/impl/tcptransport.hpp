@@ -33,6 +33,8 @@ namespace rtc::impl {
 
 class TcpTransport : public Transport {
 public:
+	using amount_callback = std::function<void(size_t amount)>;
+
 	TcpTransport(string hostname, string service, state_callback callback); // active
 	TcpTransport(socket_t sock, state_callback callback);                   // passive
 	~TcpTransport();
@@ -48,6 +50,10 @@ public:
 
 	string remoteAddress() const;
 
+	void onBufferedAmount(amount_callback callback) {
+		mBufferedAmountCallback = std::move(callback);
+	}
+
 private:
 	void connect();
 	void prepare(const sockaddr *addr, socklen_t addrlen);
@@ -56,14 +62,18 @@ private:
 
 	bool trySendQueue();
 	bool trySendMessage(message_ptr &message);
+	void updateBufferedAmount(ptrdiff_t delta);
+	void triggerBufferedAmount(size_t amount);
 
 	void process(PollService::Event event);
 
 	const bool mIsActive;
 	string mHostname, mService;
+	amount_callback mBufferedAmountCallback;
 
 	socket_t mSock;
 	Queue<message_ptr> mSendQueue;
+	size_t mBufferedAmount = 0;
 	std::mutex mSendMutex;
 };
 
