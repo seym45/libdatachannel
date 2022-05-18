@@ -6,7 +6,7 @@ platforms:
         openssl: https://github.com/PurpleI2P/OpenSSL-for-Android-Prebuilt/archive/refs/heads/master.zip
       global_dependencies:
         ndk: https://dl.google.com/android/repository/android-ndk-r21b-linux-x86_64.zip
-      default_task: clean arm64-v8a
+      default_task: clean arm64-v8a armeabi-v7a
       tasks:
         clean:
           - - rm
@@ -20,13 +20,23 @@ platforms:
             - ${build_dir}
             - ${module_dir}/ndk/android-ndk-r21b
             - ${module_dir}/openssl/OpenSSL-for-Android-Prebuilt-master/openssl-1.1.1k-clang
+            - arm64-v8a
+            - 26 # API level
+        armeabi-v7a:
+          - - bash
+            - build.android.sh
+            - ${build_dir}
+            - ${module_dir}/ndk/android-ndk-r21b
+            - ${module_dir}/openssl/OpenSSL-for-Android-Prebuilt-master/openssl-1.1.1k-clang
+            - armeabi-v7a
+            - 26 # API level
 
   mac-dashcam:
       dependencies:
         openssl: https://github.com/PurpleI2P/OpenSSL-for-Android-Prebuilt/archive/refs/heads/master.zip
       global_dependencies:
         ndk: https://dl.google.com/android/repository/android-ndk-r21b-darwin-x86_64.zip
-      default_task: clean arm64-v8a
+      default_task: clean arm64-v8a armeabi-v7a
       tasks:
         clean:
           - - rm
@@ -40,3 +50,13 @@ platforms:
             - ${build_dir}
             - ${module_dir}/ndk/android-ndk-r21b
             - ${module_dir}/openssl/OpenSSL-for-Android-Prebuilt-master/openssl-1.1.1k-clang
+            - arm64-v8a
+            - 26 # API level
+        armeabi-v7a:
+          - - bash
+            - build.android.sh
+            - ${build_dir}
+            - ${module_dir}/ndk/android-ndk-r21b
+            - ${module_dir}/openssl/OpenSSL-for-Android-Prebuilt-master/openssl-1.1.1k-clang
+            - armeabi-v7a
+            - 26 # API level

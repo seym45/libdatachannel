@@ -3,6 +3,8 @@
 RELEASE_DIR=$1
 ANDROID_NDK_ROOT=$2
 OPENSSL_ROOT=$3
+ANDROID_ABI=$4
+API_LEVEL=$5
 
 if [[ -z $SAIPM_BUILD_MODE ]]; then
     echo "Value of 'SAIPM_BUILD_MODE' is not set"
@@ -34,9 +36,14 @@ ANDROID_STL=c++_static # c++, gnustl, stlport, system, none
 echo "Android STL: $ANDROID_STL"
 echo
 
-
-ANDROID_ABI="arm64-v8a"
-API_LEVEL=28
+case $ANDROID_ABI in
+arm64-v8a | armeabi-v7a)
+    echo "Building for $ANDROID_ABI ..."
+    ;;
+*)
+    echo "Unknown abi. Try arm64-v8a|armeabi-v7a"
+    ;;
+esac
 
 DEBUG_ACCESS=0
 if [[ "$BUILD_MODE" == "Debug" ]]; then
@@ -48,9 +55,6 @@ BUILD_DIR=${RELEASE_DIR}.android
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
-
-export OPENSSL_ROOT_DIR="$OPENSSL_ROOT"
-export OPENSSL_ROOT_DIR="$OPENSSL_ROOT"
 
 set -x
 cmake \
@@ -82,7 +86,7 @@ set +x
 if [[ $RET_CODE -ne 0 ]]; then
     exit $RET_CODE
 else
-    echo "[access] cmake... Done."
+    echo "[libdatachannel] cmake... Done."
 fi
 
 set -x
@@ -92,7 +96,18 @@ set +x
 if [[ $RET_CODE -ne 0 ]]; then
     exit $RET_CODE
 else
-    echo "[access] make... Done."
+    echo "[libdatachannel] make... Done."
 fi
 echo
+
+echo "Copying files to release directory..."
+LIBRARY_DIR=$RELEASE_DIR/lib/$ANDROID_ABI
+INCLUDE_DIR=$RELEASE_DIR/include
+mkdir -p "$RELEASE_DIR" "$LIBRARY_DIR" "$INCLUDE_DIR"
+
+cp -r "$WORK_ROOT/include/rtc" "$INCLUDE_DIR"
+cp "$BUILD_DIR/libdatachannel.so" "$LIBRARY_DIR"
+
+touch "$RELEASE_DIR/API_level_$API_LEVEL"
+
 echo "done"
