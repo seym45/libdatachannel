@@ -11,8 +11,8 @@ option(USE_SYSTEM_SRTP "Use system libSRTP" OFF)
 option(USE_SYSTEM_JUICE "Use system libjuice" OFF)
 option(NO_WEBSOCKET "Disable WebSocket support" OFF)
 option(NO_MEDIA "Disable media transport support" OFF)
-option(NO_EXAMPLES "Disable examples" OFF)
-option(NO_TESTS "Disable tests build" OFF)
+option(NO_EXAMPLES "Disable examples" ON)
+option(NO_TESTS "Disable tests build" ON)
 option(WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
 option(CAPI_STDCALL "Set calling convention of C API callbacks stdcall" OFF)
 option(SCTP_DEBUG "Enable SCTP debugging output to verbose log" OFF)
@@ -220,32 +220,16 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
 endif()
 add_library(Usrsctp::Usrsctp ALIAS usrsctp)
 
-add_library(datachannel SHARED
-	${LIBDATACHANNEL_SOURCES}
-	${LIBDATACHANNEL_HEADERS}
-	${LIBDATACHANNEL_IMPL_SOURCES}
-	${LIBDATACHANNEL_IMPL_HEADERS})
-add_library(datachannel-static STATIC EXCLUDE_FROM_ALL
+
+add_library(datachannel-static STATIC
 	${LIBDATACHANNEL_SOURCES}
 	${LIBDATACHANNEL_HEADERS}
 	${LIBDATACHANNEL_IMPL_SOURCES}
 	${LIBDATACHANNEL_IMPL_HEADERS})
 
-set_target_properties(datachannel PROPERTIES
-	VERSION ${PROJECT_VERSION}
-	CXX_STANDARD 17
-	CXX_VISIBILITY_PRESET default)
 set_target_properties(datachannel-static PROPERTIES
 	VERSION ${PROJECT_VERSION}
 	CXX_STANDARD 17)
-
-target_include_directories(datachannel PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>)
-target_include_directories(datachannel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/rtc)
-target_include_directories(datachannel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_link_libraries(datachannel PRIVATE Threads::Threads)
-target_link_libraries(datachannel PRIVATE Usrsctp::Usrsctp plog::plog)
 
 target_include_directories(datachannel-static PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -256,23 +240,23 @@ target_link_libraries(datachannel-static PRIVATE Threads::Threads)
 target_link_libraries(datachannel-static PRIVATE Usrsctp::Usrsctp plog::plog)
 
 if(WIN32)
-	target_link_libraries(datachannel PUBLIC ws2_32) # winsock2
+	
 	target_link_libraries(datachannel-static PUBLIC ws2_32) # winsock2
 endif()
 
 if (NO_WEBSOCKET)
-	target_compile_definitions(datachannel PUBLIC RTC_ENABLE_WEBSOCKET=0)
+	
 	target_compile_definitions(datachannel-static PUBLIC RTC_ENABLE_WEBSOCKET=0)
 else()
-	target_compile_definitions(datachannel PUBLIC RTC_ENABLE_WEBSOCKET=1)
+	
 	target_compile_definitions(datachannel-static PUBLIC RTC_ENABLE_WEBSOCKET=1)
 endif()
 
 if(NO_MEDIA)
-	target_compile_definitions(datachannel PUBLIC RTC_ENABLE_MEDIA=0)
+	
 	target_compile_definitions(datachannel-static PUBLIC RTC_ENABLE_MEDIA=0)
 else()
-	target_compile_definitions(datachannel PUBLIC RTC_ENABLE_MEDIA=1)
+	
 	target_compile_definitions(datachannel-static PUBLIC RTC_ENABLE_MEDIA=1)
 	if(USE_SYSTEM_SRTP)
 		find_package(libSRTP REQUIRED)
@@ -283,15 +267,15 @@ else()
 				IMPORTED_LINK_INTERFACE_LANGUAGES C
 				IMPORTED_LOCATION ${SRTP_LIBRARIES})
 		endif()
-		target_compile_definitions(datachannel PRIVATE RTC_SYSTEM_SRTP=1)
+		
 		target_compile_definitions(datachannel-static PRIVATE RTC_SYSTEM_SRTP=1)
-		target_link_libraries(datachannel PRIVATE libSRTP::srtp2)
+		
 		target_link_libraries(datachannel-static PRIVATE libSRTP::srtp2)
 	else()
 		add_subdirectory(deps/libsrtp EXCLUDE_FROM_ALL)
-		target_compile_definitions(datachannel PRIVATE RTC_SYSTEM_SRTP=0)
+		
 		target_compile_definitions(datachannel-static PRIVATE RTC_SYSTEM_SRTP=0)
-		target_link_libraries(datachannel PRIVATE srtp2)
+		
 		target_link_libraries(datachannel-static PRIVATE srtp2)
 	endif()
 endif()
@@ -306,14 +290,14 @@ if (USE_GNUTLS)
 			IMPORTED_LINK_INTERFACE_LANGUAGES C
 			IMPORTED_LOCATION "${GNUTLS_LIBRARIES}")
 	endif()
-	target_compile_definitions(datachannel PRIVATE USE_GNUTLS=1)
+	
 	target_compile_definitions(datachannel-static PRIVATE USE_GNUTLS=1)
-	target_link_libraries(datachannel PRIVATE GnuTLS::GnuTLS)
+	
 	target_link_libraries(datachannel-static PRIVATE GnuTLS::GnuTLS)
 	if (NOT NO_WEBSOCKET)
 		# Needed for SHA1, it should be present as GnuTLS cryptography backend
 		find_package(Nettle REQUIRED)
-		target_link_libraries(datachannel PRIVATE Nettle::Nettle)
+		
 		target_link_libraries(datachannel-static PRIVATE Nettle::Nettle)
 	endif()
 else()
@@ -334,94 +318,66 @@ else()
 		endif()
 	endif()
 	find_package(OpenSSL REQUIRED)
-	target_compile_definitions(datachannel PRIVATE USE_GNUTLS=0)
+	
 	target_compile_definitions(datachannel-static PRIVATE USE_GNUTLS=0)
-	target_link_libraries(datachannel PRIVATE OpenSSL::SSL)
+	
 	target_link_libraries(datachannel-static PRIVATE OpenSSL::SSL)
 endif()
 
 if (USE_NICE)
 	find_package(LibNice REQUIRED)
-	target_compile_definitions(datachannel PRIVATE USE_NICE=1)
+	
 	target_compile_definitions(datachannel-static PRIVATE USE_NICE=1)
-	target_link_libraries(datachannel PRIVATE LibNice::LibNice)
+	
 	target_link_libraries(datachannel-static PRIVATE LibNice::LibNice)
 else()
-	target_compile_definitions(datachannel PRIVATE USE_NICE=0)
+	
 	target_compile_definitions(datachannel-static PRIVATE USE_NICE=0)
 	if(USE_SYSTEM_JUICE)
 		find_package(LibJuice REQUIRED)
-		target_compile_definitions(datachannel PRIVATE RTC_SYSTEM_JUICE=1)
+		
 		target_compile_definitions(datachannel-static PRIVATE RTC_SYSTEM_JUICE=1)
-		target_link_libraries(datachannel PRIVATE LibJuice::LibJuice)
+		
 		target_link_libraries(datachannel-static PRIVATE LibJuice::LibJuice)
 	else()
 		add_subdirectory(deps/libjuice EXCLUDE_FROM_ALL)
-		target_compile_definitions(datachannel PRIVATE RTC_SYSTEM_JUICE=0)
+		
 		target_compile_definitions(datachannel-static PRIVATE RTC_SYSTEM_JUICE=0)
-		target_link_libraries(datachannel PRIVATE LibJuice::LibJuiceStatic)
+		
 		target_link_libraries(datachannel-static PRIVATE LibJuice::LibJuiceStatic)
 	endif()
 endif()
 
 if(CAPI_STDCALL)
-	target_compile_definitions(datachannel PUBLIC CAPI_STDCALL)
+	
 	target_compile_definitions(datachannel-static PUBLIC CAPI_STDCALL)
 endif()
 
-set_target_properties(datachannel PROPERTIES EXPORT_NAME LibDataChannel)
-add_library(LibDataChannel::LibDataChannel ALIAS datachannel)
+
+#add_library(LibDataChannel::LibDataChannel ALIAS datachannel)
 
 set_target_properties(datachannel-static PROPERTIES EXPORT_NAME LibDataChannelStatic)
 add_library(LibDataChannel::LibDataChannelStatic ALIAS datachannel-static)
 
 if(NOT MSVC)
-	target_compile_options(datachannel PRIVATE -Wall -Wextra)
+	
 	target_compile_options(datachannel-static PRIVATE -Wall -Wextra)
 endif()
 
 if(WARNINGS_AS_ERRORS)
 	if(MSVC)
-		target_compile_options(datachannel PRIVATE /WX)
+		
 		target_compile_options(datachannel-static PRIVATE /WX)
 	else()
-		target_compile_options(datachannel PRIVATE -Werror)
+		
 		target_compile_options(datachannel-static PRIVATE -Werror)
 	endif()
 endif()
 
-install(TARGETS datachannel EXPORT LibDataChannelTargets
-	RUNTIME DESTINATION bin
-	LIBRARY DESTINATION lib
-	ARCHIVE DESTINATION lib
-)
 
 install(FILES ${LIBDATACHANNEL_HEADERS}
 	DESTINATION include/rtc
 )
-
-# Export targets
-install(
-	EXPORT LibDataChannelTargets
-	FILE LibDataChannelTargets.cmake
-	NAMESPACE LibDataChannel::
-	DESTINATION lib/cmake/LibDataChannel
-)
-
-# Export config
-install(
-	FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/LibDataChannelConfig.cmake
-	DESTINATION lib/cmake/LibDataChannel
-)
-
-# Export config version
-include(CMakePackageConfigHelpers)
-write_basic_package_version_file(
-	${CMAKE_BINARY_DIR}/LibDataChannelConfigVersion.cmake
-	VERSION ${PROJECT_VERSION}
-	COMPATIBILITY SameMajorVersion)
-install(FILES ${CMAKE_BINARY_DIR}/LibDataChannelConfigVersion.cmake
-	DESTINATION lib/cmake/LibDataChannel)
 
 # Tests
 if(NOT NO_TESTS)
