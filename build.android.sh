@@ -77,8 +77,6 @@ cmake \
     -DOPENSSL_CRYPTO_LIBRARY="$OPENSSL_ROOT/lib/$ANDROID_ABI/libcrypto.a" \
     -DOPENSSL_SSL_LIBRARY="$OPENSSL_ROOT/lib/$ANDROID_ABI/libssl.a" \
     -DUSE_NICE=0 \
-    -DNO_WEBSOCKET=ON \
-    -DNO_MEDIA=ON \
     "$WORK_ROOT"
 RET_CODE=$?
 
