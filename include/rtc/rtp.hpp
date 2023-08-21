@@ -364,7 +364,7 @@ struct RTC_CPP_EXPORT RtpRtx {
 
 // For backward compatibility, do not use
 using RTP_ExtensionHeader = RtpExtensionHeader;
-using RTP = RtpHeader;
+using RTP_Header = RtpHeader;
 using RTCP_ReportBlock = RtcpReportBlock;
 using RTCP_HEADER = RtcpHeader;
 using RTCP_FB_HEADER = RtcpFbHeader;
